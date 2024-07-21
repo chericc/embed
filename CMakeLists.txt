@@ -16,6 +16,8 @@ project(pico_demo)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 pico_sdk_init()
 
 add_compile_options(-Wall

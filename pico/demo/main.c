@@ -1,7 +1,10 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
+#include "xlog.h"
 
 int main()
 {
+    stdio_init_all();
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
@@ -10,6 +13,7 @@ int main()
         sleep_ms(50);
         gpio_put(LED_PIN, 0);
         sleep_ms(950);
+        xlog_dbg("run");
     }
     return 0;
 }
