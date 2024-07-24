@@ -10,9 +10,9 @@ int main()
     gpio_set_dir(LED_PIN, GPIO_OUT);
     while (true) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(50);
+        sleep_ms(800);
         gpio_put(LED_PIN, 0);
-        sleep_ms(950);
+        sleep_ms(200);
         xlog_dbg("run");
     }
     return 0;
