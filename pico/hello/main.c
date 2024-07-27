@@ -26,13 +26,19 @@ static void pin_configure()
     gpio_init(WIFI_BOARD_EN_PIN);
     gpio_set_dir(WIFI_BOARD_EN_PIN, GPIO_OUT);
     gpio_put(WIFI_BOARD_EN_PIN, 1);
+
+    const uint WIFI_BOARD_RST_PIN = 17;
+
+    gpio_init(WIFI_BOARD_RST_PIN);
+    gpio_set_dir(WIFI_BOARD_RST_PIN, GPIO_OUT);
+    gpio_put(WIFI_BOARD_RST_PIN, 1);
 }
 
 static void uart_configure()
 {
     uart_init(uart1, 115200);
+    gpio_set_function(4, GPIO_FUNC_UART);
     gpio_set_function(5, GPIO_FUNC_UART);
-    gpio_set_function(6, GPIO_FUNC_UART);
 }
 
 static void irq_handler_uart1(void)
@@ -47,6 +53,7 @@ static void irq_handler_uart1(void)
 static void interrupt_configure()
 {
     irq_set_exclusive_handler(UART1_IRQ, irq_handler_uart1);
+    irq_set_enabled(UART1_IRQ, true);
     uart_set_irq_enables(uart1, true, 0);
 }
 
@@ -75,11 +82,11 @@ int main()
         uint8_t msg_data[] = "hello, world!";
         TF_Msg msg;
         TF_ClearMsg(&msg);
-        msg.type = MSG_TYPE_ECHO;
+        msg.type = MSG_TYPE_ECHO; 
         msg.data = msg_data;
         msg.len = sizeof(msg_data);
         TF_Send(s_tf, &msg);
-        sleep_ms(1000);
+        sleep_ms(5000);
     }
 
     return 0;
