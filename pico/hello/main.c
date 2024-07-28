@@ -10,13 +10,16 @@ typedef enum {
 static TinyFrame s_tf_;
 static TinyFrame *s_tf = &s_tf_;
 
+#define DEBUG_UART  uart1
+#define COMM_UART   uart0
+
 void TF_WriteImpl(TinyFrame *tf, const uint8_t *buff, uint32_t len)
 {
     for (int i = 0; i < len; ++i) {
-        xlog_dbg("uart1 send: %x", buff[i]);
-        uart_putc(uart1, buff[i]);
+        xlog_dbg("COMM_UART send: %x", buff[i]);
+        uart_putc(COMM_UART, buff[i]);
     }
-    xlog_dbg("uart1 send %d bytes done", len);
+    xlog_dbg("COMM_UART send %d bytes done", len);
 }
 
 static void pin_configure()
@@ -34,27 +37,28 @@ static void pin_configure()
     gpio_put(WIFI_BOARD_RST_PIN, 1);
 }
 
-static void uart_configure()
+static void on_uart_comm(void)
 {
-    uart_init(uart1, 115200);
-    gpio_set_function(4, GPIO_FUNC_UART);
-    gpio_set_function(5, GPIO_FUNC_UART);
-}
-
-static void irq_handler_uart1(void)
-{
-    while (uart_is_readable(uart1)) {
-        uint8_t ch = uart_getc(uart1);
-        xlog_dbg("uart1 got: %x", ch);
+    while (uart_is_readable(COMM_UART)) {
+        uint8_t ch = uart_getc(COMM_UART);
+        xlog_dbg("COMM_UART got: %x", ch);
         TF_AcceptChar(s_tf, ch);
     }
 }
 
-static void interrupt_configure()
+static void uart_configure()
 {
-    irq_set_exclusive_handler(UART1_IRQ, irq_handler_uart1);
-    irq_set_enabled(UART1_IRQ, true);
-    uart_set_irq_enables(uart1, true, 0);
+    uart_init(COMM_UART, 115200);
+    gpio_set_function(0, GPIO_FUNC_UART);
+    gpio_set_function(1, GPIO_FUNC_UART);
+
+    uart_set_hw_flow(COMM_UART, false, false);
+    uart_set_format(COMM_UART, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(COMM_UART, false);
+
+    irq_set_exclusive_handler(UART0_IRQ, on_uart_comm);
+    irq_set_enabled(UART0_IRQ, true);
+    uart_set_irq_enables(uart0, true, 0);
 }
 
 static TF_Result my_tf_echo_listener(TinyFrame *tf, TF_Msg *msg)
@@ -65,14 +69,13 @@ static TF_Result my_tf_echo_listener(TinyFrame *tf, TF_Msg *msg)
 
 int main() 
 {
-    stdio_init_all();
+    stdio_uart_init_full(uart1, PICO_DEFAULT_UART_BAUD_RATE, 8, 9);
+
     xlog_dbg("hello");
 
     pin_configure();
 
     uart_configure();
-
-    interrupt_configure();
 
     TF_InitStatic(s_tf, TF_MASTER);
 
