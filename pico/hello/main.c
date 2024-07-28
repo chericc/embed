@@ -16,10 +16,9 @@ static TinyFrame *s_tf = &s_tf_;
 void TF_WriteImpl(TinyFrame *tf, const uint8_t *buff, uint32_t len)
 {
     for (int i = 0; i < len; ++i) {
-        xlog_dbg("COMM_UART send: %x", buff[i]);
         uart_putc(COMM_UART, buff[i]);
     }
-    xlog_dbg("COMM_UART send %d bytes done", len);
+    hex_dump("send", buff, len);
 }
 
 static void pin_configure()
@@ -41,7 +40,7 @@ static void on_uart_comm(void)
 {
     while (uart_is_readable(COMM_UART)) {
         uint8_t ch = uart_getc(COMM_UART);
-        xlog_dbg("COMM_UART got: %x", ch);
+        // xlog_dbg("COMM_UART got: %x", ch);
         TF_AcceptChar(s_tf, ch);
     }
 }

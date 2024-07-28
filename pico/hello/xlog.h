@@ -1,6 +1,8 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
+#include <stdint.h>
+
 typedef enum {
     XLOG_LEVEL_TRACE = 1 << 0,
     XLOG_LEVEL_DEBUG = 1 << 1,
@@ -30,5 +32,8 @@ void xlog(XLOG_LEVEL level, const char* file, int line, const char* func,
     xlog(XLOG_LEVEL_ERROR, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define xlog_cri(...) \
     xlog(XLOG_LEVEL_CRITICAL, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+
+void hex_dump_a(const char *desc, uint8_t const*buf, int len, const char *func, int line);
+#define hex_dump(desc,buf,len) hex_dump_a(desc,buf,len,__func__,__LINE__)
 
 #endif // __LOG_H__

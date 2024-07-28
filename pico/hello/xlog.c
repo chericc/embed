@@ -50,7 +50,8 @@ void xlog(XLOG_LEVEL level, const char* file, int line, const char* func,
     strftime(now_str, sizeof(now_str), "%F %T", &stm);
 
     do {
-        FILE *fp = stdout;
+        char buffer[256];
+        FILE *fp = fmemopen(buffer, sizeof(buffer), "w");
         if (NULL == fp) {
             break;
         }
@@ -62,8 +63,55 @@ void xlog(XLOG_LEVEL level, const char* file, int line, const char* func,
         vfprintf(fp, format, ap);
         va_end(ap);
         fprintf(fp, "\n");
-        fflush(fp);
+
+        fclose(fp);
+
+        printf("%s", buffer);
     } while (0);
 
     return;
+}
+
+void hex_dump_a(const char *desc, uint8_t const*buf, int len, const char *func, int line)
+{
+    char outputbuf[512];
+    outputbuf[0] = 0;
+    FILE* fp = NULL;
+
+    do {
+        if (len <= 0) {
+            xlog_dbg("empty buf\n");
+            break;
+        } 
+
+        fp = fmemopen(outputbuf, sizeof(outputbuf), "w");
+        if (!fp) {
+            xlog_dbg("fmemopen failed\n");
+            break;
+        }
+
+        fprintf(fp, "[%d]", len);
+
+        int dump_len = (len > 32 ? 32 : len);
+
+        int bytes_write = 0;
+        for (int i = 0; i < dump_len; ++i) {
+            bytes_write = fprintf(fp, "%02X ", buf[i]);
+            if (bytes_write <= 0) {
+                break;
+            }
+        }
+
+        if (dump_len != len) {
+            fprintf(fp, "...");
+        }
+        fflush(fp);
+
+        xlog_dbg("%s:%s(in: %s,%d)", desc, outputbuf, func, line);
+    } while (0);
+    
+    if (fp) {
+        fclose(fp);
+        fp = NULL;
+    }
 }
