@@ -50,3 +50,4 @@ ninja
 
 1. 如果把pico的uart1（5、6）作为uart通信口，则默认电平会引起esp-01启动模式异常。
 2. 如果esp8266晶振频率调整为40MHz，则串口频率不是115200（设置无效）。
+3. ubuntu: apt remove brltty, or no tty devices will show.
